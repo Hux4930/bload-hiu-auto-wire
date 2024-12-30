@@ -1,0 +1,75 @@
+-- BloodLibrary Module
+local BloodLibrary = {}
+
+-- Sends notices to players
+function BloodLibrary.sendNotice(msg, time)
+    local t = time or 2 -- Default time if not provided
+    if game.ReplicatedStorage:FindFirstChild("Notices") and game.ReplicatedStorage.Notices:FindFirstChild("SendUserNotice") then
+        game.ReplicatedStorage.Notices.SendUserNotice:Fire(msg, t)
+    else
+        warn("SendUserNotice event not found in ReplicatedStorage.")
+    end
+end
+
+-- Updates money display
+function BloodLibrary.updateMoneyDisplay(text)
+    local gui = game:GetService("Players").LocalPlayer.PlayerGui:FindFirstChild("MoneyDisplayGui")
+    if gui and gui:FindFirstChild("Text") then
+        gui.Text.Text = text
+        gui.Text.DropShadow.Text = text
+    else
+        warn("MoneyDisplayGui or Text elements not found in PlayerGui.")
+    end
+end
+
+-- Wire manipulation logic
+function BloodLibrary.changeWire(wireName)
+    local player = game:GetService("Players").LocalPlayer
+    local property, originSquare, wires
+    for _, v in pairs(game:GetService("Workspace").Properties:GetChildren()) do
+        if v:FindFirstChild("Owner") and v.Owner.Value == player then
+            originSquare = v.OriginSquare.Position
+            wires = v:GetChildren()
+        end
+    end
+
+    if not originSquare or not wires then
+        warn("Unable to find the player's property or wires.")
+        return
+    end
+
+    local function calculateDistance(v1, v2)
+        return (v1 - v2).magnitude
+    end
+
+    -- Process wires
+    for _, wire in pairs(wires) do
+        if wire.Name ~= "Owner" and calculateDistance(wire.Position, player.Character.Head.Position) < 20 then
+            local wireType = game:GetService("ReplicatedStorage").Purchasables:FindFirstChild(wireName, true)
+            if not wireType then
+                warn("Wire type " .. wireName .. " not found in Purchasables.")
+                return
+            end
+
+            local position1 = player.Character.Head.Position + Vector3.new(0, 3, 0)
+            local position2 = position1 + Vector3.new(0, 10, 0)
+            local event = game:GetService("ReplicatedStorage").PlaceStructure:FindFirstChild("ClientPlacedWire")
+            if event then
+                event:FireServer(wireType, {position1, position2}, player, wire, true)
+                BloodLibrary.sendNotice("Wire changed successfully!", 2)
+            else
+                warn("ClientPlacedWire event not found in ReplicatedStorage.")
+            end
+        end
+    end
+end
+
+-- GUI creation
+function BloodLibrary.createWindow(title)
+    local gui = Instance.new("ScreenGui")
+    gui.Name = title
+    gui.Parent = game.CoreGui
+    return gui
+end
+
+return BloodLibrary
