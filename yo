@@ -72,4 +72,21 @@ function BloodLibrary.createWindow(title)
     return gui
 end
 
+-- Now integrate DiscordLib into the script
+local DiscordLib = require(game.ReplicatedStorage.DiscordLib)
+
+-- Create a window with a title
+local win = DiscordLib:Window("BLOOD v11.90 ODDY HACKER HOCKEY900")
+
+-- Add a button as an example UI element
+local button = Instance.new("TextButton")
+button.Text = "Click Me"
+button.Size = UDim2.new(0.3, 0, 0.2, 0) -- 30% width, 20% height
+button.Position = UDim2.new(0.35, 0, 0.4, 0) -- Centered in the frame
+button.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+button.TextColor3 = Color3.fromRGB(255, 255, 255)
+button.Font = Enum.Font.SourceSans
+button.TextScaled = true
+button.Parent = win
+
 return BloodLibrary
